@@ -1,0 +1,24 @@
+KEJADIAN 2 - ORPHAN PROCESS
+
+Fenomena yang terjadi adalah ORPHAN PROCESS.
+
+Penjelasan Teknis:
+Sebuah proses disebut orphan ketika:
+1. Parent process telah selesai (terminated/crash) lebih dahulu
+2. Sementara child process masih aktif berjalan
+
+Ketika parent process mati sebelum child-nya, OS tidak mematikan child
+secara otomatis. Sebaliknya, OS menerapkan mekanisme "adoption" (adopsi):
+- Child process yang ditinggalkan (orphan) akan di-adopt oleh proses
+  dengan PID 1, yaitu init process (atau systemd di sistem modern)
+- Init process menjadi parent baru dari orphan process tersebut
+- Init process secara berkala memanggil wait() untuk mereap child-nya
+
+Karena itulah child process tidak ikut mati ketika parent-nya mati,
+dan child process tetap berjalan hingga selesai tugasnya sendiri.
+
+Solusi:
+Jika ingin child ikut mati bersama parent, parent bisa:
+1. Mengirimkan sinyal SIGTERM/SIGKILL ke semua child sebelum exit
+2. Menggunakan prctl(PR_SET_PDEATHSIG, SIGTERM) pada child agar
+   child menerima sinyal ketika parent mati

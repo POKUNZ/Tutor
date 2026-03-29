@@ -1,0 +1,64 @@
+========================================================
+OS FINAL DRAFT - SOAL 1 JAWABAN
+========================================================
+
+1. PERBEDAAN ORPHAN PROCESS vs ZOMBIE PROCESS
+----------------------------------------------
+
+ORPHAN PROCESS:
+- Kondisi: Child process MASIH AKTIF berjalan, tetapi parent-nya sudah mati lebih dulu
+- Penyebab: Parent process terminate sebelum child selesai
+- Mekanisme OS: Child yang ditinggalkan di-adopt oleh init/systemd (PID 1)
+- Status di ps: Terlihat normal (Running/Sleeping), bukan defunct
+- Dampak: Proses masih berjalan dan menggunakan resource (CPU/memori)
+
+ZOMBIE PROCESS (Defunct):
+- Kondisi: Child process sudah SELESAI eksekusi, tapi parent BELUM memanggil wait()
+- Penyebab: Parent tidak memanggil wait()/waitpid() untuk membaca exit status child
+- Mekanisme OS: Entry child tetap ada di process table menunggu parent "mereap"-nya
+- Status di ps: Terlihat sebagai <defunct>
+- Dampak: Tidak menggunakan CPU/memori, tapi MENEMPATI slot di process table
+
+Perbedaan utama:
+- Orphan: child MASIH HIDUP, parent sudah mati
+- Zombie: child SUDAH MATI, tapi belum dibersihkan oleh parent
+
+
+2. FUNGSI UNTUK MEMBERSIHKAN STATUS CHILD
+------------------------------------------
+Fungsi yang digunakan parent untuk membersihkan (reap) child:
+- wait(int *status)       -- menunggu SEMUA child, blocking
+- waitpid(pid_t pid, int *status, int options) -- menunggu child TERTENTU
+- waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options) -- versi lebih detail
+
+Yang paling umum digunakan: wait() dan waitpid()
+
+
+3. POTONGAN KODE PEMBUATAN CHILD PROCESS (DENGAN CATATAN TEKNIS)
+-----------------------------------------------------------------
+Lihat file OSFinal_Soal1_code.c
+
+
+4. DAMPAK PID EXHAUSTION AKIBAT ZOMBIE PROCESS
+-----------------------------------------------
+Jika sistem dibanjiri proses yang tidak di-reap:
+
+a) PID Space Exhaustion:
+   - Setiap zombie menempati 1 slot PID di process table
+   - Linux memiliki batas PID default: /proc/sys/kernel/pid_max (biasanya 32768 atau 4194304)
+   - Jika semua PID terpakai, sistem TIDAK BISA membuat proses baru (fork() akan gagal dengan EAGAIN)
+
+b) Process Table Overflow:
+   - Setiap zombie menyimpan minimal: PID, exit status, waktu CPU, informasi user
+   - Dengan ribuan zombie, konsumsi memori kernel bisa signifikan
+
+c) Dampak Sistem:
+   - Program baru tidak bisa diluncurkan
+   - Sistem bisa menjadi tidak responsif
+   - Login baru mungkin gagal (shell tidak bisa fork)
+   - Daemon dan service sistem bisa gagal restart
+
+d) Solusi:
+   - Selalu panggil wait()/waitpid() di parent setelah fork()
+   - Gunakan signal handler SIGCHLD untuk reap secara asinkron
+   - Atau set SIGCHLD ke SIG_IGN agar OS otomatis reap zombie

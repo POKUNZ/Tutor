@@ -1,0 +1,51 @@
+========================================================
+OS FINAL DRAFT - SOAL 2 JAWABAN
+========================================================
+
+1. MENGAPA SOLUSI NAIF SELALU DEADLOCK
+---------------------------------------
+Solusi naif: setiap filosof ambil garpu KIRI dulu, lalu garpu KANAN.
+
+Skenario deadlock (semua 5 filosof lapar bersamaan):
+- Filosof 0 mengambil garpu 0 (kiri), menunggu garpu 1
+- Filosof 1 mengambil garpu 1 (kiri), menunggu garpu 2
+- Filosof 2 mengambil garpu 2 (kiri), menunggu garpu 3
+- Filosof 3 mengambil garpu 3 (kiri), menunggu garpu 4
+- Filosof 4 mengambil garpu 4 (kiri), menunggu garpu 0
+
+Semua 4 kondisi Coffman terpenuhi:
+1. Mutual Exclusion  : garpu hanya bisa dipegang 1 filosof
+2. Hold and Wait     : setiap filosof memegang 1 garpu sambil menunggu yang lain
+3. No Preemption     : garpu tidak bisa diambil paksa dari filosof lain
+4. Circular Wait     : 0 tunggu 1, 1 tunggu 2, ..., 4 tunggu 0 (lingkaran)
+
+Karena semua kondisi Coffman terpenuhi -> DEADLOCK permanen.
+
+
+2. IMPLEMENTASI MUTEX: lihat file OSFinal_Soal2_mutex.c
+
+3. IMPLEMENTASI SEMAPHORE: lihat file OSFinal_Soal2_semaphore.c
+
+
+4. PERBANDINGAN MEMORI MUTEX vs SEMAPHORE
+------------------------------------------
+
+MUTEX (pthread_mutex_t):
+- Ukuran: ~40 bytes per mutex di Linux (glibc)
+- Untuk 5 garpu: 5 * 40 = ~200 bytes
+- Fitur: ownership (hanya thread yang lock bisa unlock), recursive lock option
+- Overhead: ringan, optimal untuk mutual exclusion sederhana
+
+SEMAPHORE (sem_t / System V semaphore):
+- POSIX sem_t: ~16 bytes per semaphore
+- System V semaphore: overhead lebih besar (ada semaphore set, kernel data structure)
+- Untuk 5 garpu: 5 * 16 = ~80 bytes (POSIX) atau lebih besar (System V)
+- Fitur: tidak ada ownership (thread berbeda bisa signal), bisa counting semaphore
+
+KESIMPULAN:
+- Untuk skenario Dining Philosophers (mutual exclusion per garpu):
+  MUTEX lebih tepat secara semantik (ownership model)
+  SEMAPHORE lebih fleksibel dan bisa lebih ringan memori (POSIX sem_t)
+- Secara praktis perbedaan memori sangat kecil untuk 5 filosof
+- Mutex lebih efisien untuk use case mutual exclusion murni karena
+  tidak perlu overhead counting dan lebih mudah di-debug

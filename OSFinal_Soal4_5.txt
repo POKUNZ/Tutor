@@ -1,0 +1,19 @@
+========================================================
+OS FINAL DRAFT - SOAL 4 & 5 JAWABAN
+========================================================
+
+SOAL 4 (5 Points): Bagaimana harimu hari ini?
+----------------------------------------------
+Hari ini cukup melelahkan tapi menyenangkan. Mengerjakan soal-soal
+Operating System tentang process, thread, deadlock, dan synchronization
+membuatku semakin paham bagaimana OS bekerja di balik layar. Meskipun
+sempat bingung dengan konsep zombie process dan semaphore, akhirnya
+semuanya mulai masuk akal. Semoga hasil quiznya memuaskan!
+
+
+SOAL 5 (5 Points): Apakah kamu melakukan kecurangan?
+------------------------------------------------------
+Tidak. Semua jawaban dikerjakan sendiri berdasarkan materi yang sudah
+dipelajari di e-learning tanpa bantuan internet atau AI.
+
+(Catatan untuk latihan: ini adalah file latihan - bukan ujian asli)

@@ -1,0 +1,25 @@
+KEJADIAN 1 - ZOMBIE PROCESS
+
+Fenomena yang terjadi adalah ZOMBIE PROCESS (Defunct Process).
+
+Penjelasan Teknis:
+Sebuah proses disebut zombie ketika:
+1. Child process telah selesai eksekusi dan memanggil exit()
+2. Namun parent process BELUM memanggil wait() / waitpid() untuk membaca
+   exit status dari child tersebut
+
+Ketika child process selesai, OS tidak langsung menghapus entry-nya dari
+process table. OS menyimpan informasi minimal (PID, exit status) di process
+table, menunggu parent "mereap" (membaca) exit status tersebut.
+
+Selama parent belum memanggil wait(), child process tersebut akan tetap
+muncul di process table dengan status <defunct> meskipun:
+- Tidak menggunakan CPU
+- Tidak menggunakan memori
+- Tidak menggunakan resource lain
+
+Entry ini baru akan dihapus setelah parent memanggil wait() / waitpid().
+
+Solusi:
+Parent process harus memanggil wait() atau waitpid() setelah fork() untuk
+membersihkan entry child yang sudah selesai dari process table.

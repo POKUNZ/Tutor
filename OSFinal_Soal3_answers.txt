@@ -1,0 +1,54 @@
+========================================================
+OS FINAL DRAFT - SOAL 3 JAWABAN
+========================================================
+
+1. APAKAH COUNTER TANPA SINKRONISASI MENYEBABKAN INKONSISTENSI?
+----------------------------------------------------------------
+JAWABAN: YA, counter sederhana tanpa sinkronisasi PASTI menyebabkan inkonsistensi data.
+
+Penyebabnya adalah RACE CONDITION:
+Operasi counter++ secara internal terdiri dari 3 instruksi CPU:
+  1. LOAD  : baca nilai counter dari memori ke register CPU
+  2. ADD   : tambahkan 1 di register
+  3. STORE : simpan kembali hasil ke memori
+
+Jika dua thread (Producer & Consumer) melakukan operasi ini secara bersamaan:
+- Thread A: LOAD counter = 5
+- Thread B: LOAD counter = 5  (sebelum A STORE)
+- Thread A: ADD -> 6, STORE -> counter = 6
+- Thread B: ADD -> 6, STORE -> counter = 6  (seharusnya 7!)
+
+Akibatnya:
+- Data yang diproduksi bisa overwrite data yang belum dikonsumsi
+- Consumer bisa membaca data yang belum diisi Producer (garbage value)
+- Nilai counter tidak mencerminkan kondisi buffer sebenarnya
+
+Solusi: gunakan mutex/semaphore untuk melindungi critical section.
+
+
+2-3. IMPLEMENTASI PRODUCER-CONSUMER: lihat file OSFinal_Soal3_prodcons.c
+
+
+4. DAMPAK JIKA CONSUMER >> PRODUCER
+--------------------------------------
+Jika jumlah Consumer jauh lebih banyak dari Producer:
+
+a) Buffer Starvation:
+   - Producer mengisi buffer lebih lambat dari Consumer mengosongkannya
+   - Buffer akan sering kosong
+   - Semua Consumer akan sering menunggu (blocked di sem_wait(full))
+
+b) Dampak CPU Utilization:
+   - Consumer threads yang menunggu masuk ke state BLOCKED/SLEEPING
+   - Tidak menggunakan CPU saat blocked -> CPU utilization menurun
+   - Terjadi "busy waiting" jika implementasi tidak efisien (tanpa semaphore)
+   - Context switching meningkat karena banyak thread bergantian wake/sleep
+
+c) Kondisi Starvation Semu:
+   - Beberapa Consumer mungkin jarang mendapat item (terutama jika scheduler tidak fair)
+   - Producer menjadi bottleneck sistem
+
+d) Solusi:
+   - Sesuaikan jumlah Producer dan Consumer dengan beban kerja
+   - Tambah jumlah Producer, atau kurangi Consumer
+   - Perbesar kapasitas buffer sebagai buffer zone

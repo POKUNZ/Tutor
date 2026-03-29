@@ -1,0 +1,78 @@
+========================================================
+ONSITE PAKET B - SOAL 5 BONUS: 5 FILOSOF YUNANI KUNO
+========================================================
+
+a) SKENARIO BURUK & ISTILAH TEKNIS (5 Points)
+----------------------------------------------
+Skenario: Semua 5 filosof lapar bersamaan dan masing-masing berhasil
+mengambil garpu kirinya secara serentak.
+
+Yang terjadi:
+- Filosof 0: memegang garpu[0], menunggu garpu[1]
+- Filosof 1: memegang garpu[1], menunggu garpu[2]
+- Filosof 2: memegang garpu[2], menunggu garpu[3]
+- Filosof 3: memegang garpu[3], menunggu garpu[4]
+- Filosof 4: memegang garpu[4], menunggu garpu[0]
+
+Tidak ada satu pun yang bisa mendapat garpu kedua karena semua garpu
+sudah dipegang. Semua filosof menunggu selamanya -> sistem terhenti total.
+
+Istilah teknis: DEADLOCK (juga memenuhi semua 4 kondisi Coffman):
+1. Mutual Exclusion  : garpu hanya bisa dipegang 1 filosof sekaligus
+2. Hold and Wait     : setiap filosof memegang garpu kiri sambil menunggu kanan
+3. No Preemption     : tidak ada yang bisa merebut garpu dari filosof lain
+4. Circular Wait     : F0->F1->F2->F3->F4->F0 (rantai tunggu melingkar)
+
+
+b) PELANGGARAN PRINSIP LIVENESS (5 Points)
+-------------------------------------------
+Algoritma naif melanggar prinsip Liveness karena:
+
+Liveness = properti yang menjamin kemajuan sistem (progress).
+Ada dua aspek liveness: Progress dan Bounded Waiting.
+
+Algoritma naif MELANGGAR keduanya:
+1. Progress: Jika semua filosof menunggu, tidak ada kemajuan di sistem.
+   Tidak ada thread yang bisa melanjutkan eksekusi -> sistem mandek.
+
+2. Bounded Waiting: Tidak ada jaminan setiap filosof akan mendapat giliran
+   makan dalam waktu yang terbatas -> potensi starvation.
+
+Yang terjadi pada sistem jika kondisi (a) terjadi:
+- Semua 5 thread philosoph masuk ke state BLOCKED permanen
+- Tidak ada thread yang bisa di-unblock karena tidak ada yang melepaskan resource
+- Program hang selamanya, tidak ada output lebih lanjut
+- CPU utilization turun mendekati 0% (semua thread sleeping/blocked)
+- Satu-satunya cara keluar: kill program secara paksa (Ctrl+C / SIGKILL)
+
+
+c) SOLUSI AGAR TIDAK DEADLOCK (10 Points)
+------------------------------------------
+Ada beberapa solusi yang bisa diterapkan:
+
+SOLUSI 1: Asymmetric Order (Order Hierarchy)
+- Filosof bernomor GENAP: ambil garpu KANAN dulu, baru KIRI
+- Filosof bernomor GANJIL: ambil garpu KIRI dulu, baru KANAN
+- Efek: Memecah circular wait -> salah satu filosof pasti bisa dapat kedua garpu
+- Implementasi: mudah, overhead minimal
+- Kelemahan: tidak 100% bebas starvation
+
+SOLUSI 2: Room Semaphore (Tanenbaum)
+- Tambahkan semaphore "room" dengan nilai N-1 (= 4 untuk 5 filosof)
+- Maksimum hanya 4 dari 5 filosof yang boleh mencoba mengambil garpu
+- Paling tidak 1 filosof pasti bisa mendapat kedua garpunya
+- Ini yang diimplementasikan di file OSFinal_Soal2_semaphore.c
+
+SOLUSI 3: Monitor/Kondisi (Chandy-Misra)
+- Filosof hanya boleh mengambil garpu jika KEDUA tetangganya tidak sedang makan
+- Cek kondisi sebelum mengambil garpu (atomik)
+- Jika kondisi tidak terpenuhi, filosof menunggu di condition variable
+- Bebas deadlock DAN starvation
+
+SOLUSI 4: Pick up both atomically
+- Gunakan satu mutex global untuk mengambil KEDUA garpu sekaligus
+- Jika salah satu garpu tidak tersedia, lepaskan semua dan coba lagi
+- Kelemahan: mengurangi paralelisme (hanya 1 filosof yang bisa makan)
+
+REKOMENDASI: Solusi 1 (Asymmetric Order) atau Solusi 2 (Room Semaphore)
+adalah yang paling praktis dan efisien untuk Dining Philosophers 5 orang.
